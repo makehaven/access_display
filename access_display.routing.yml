@@ -1,0 +1,6 @@
+access_display.feed:
+  path: '/access-display/presence'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\PresenceFeedController::feed'
+  requirements:
+    _permission: 'access content'

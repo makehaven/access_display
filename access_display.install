@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function access_display_schema() {
+  $schema['access_display_presence'] = [
+    'description' => 'De-duplicated presence (latest entry per user within debounce window).',
+    'fields' => [
+      'uid' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
+      'user_uuid' => ['type' => 'varchar', 'length' => 36, 'not null' => TRUE, 'default' => ''],
+      'realname' => ['type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''],
+      'door' => ['type' => 'varchar', 'length' => 128, 'not null' => TRUE, 'default' => ''],
+      'first_seen' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0],
+      'last_seen' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0],
+      'scan_count' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1],
+    ],
+    'primary key' => ['uid'],
+    'indexes' => [
+      'last_seen' => ['last_seen'],
+    ],
+  ];
+  return $schema;
+}

@@ -1,0 +1,4 @@
+services:
+  access_display.updater:
+    class: Drupal\access_display\Service\PresenceUpdater
+    arguments: ['@database', '@entity_type.manager']

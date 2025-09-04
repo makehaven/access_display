@@ -1,0 +1,13 @@
+{
+    "name": "makehaven/access_display",
+    "description": "De-duplicated presence feed + JSON for kiosk displays.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "require": {
+      "php": ">=8.1",
+      "drupal/core": "^10",
+      "drupal/profile": "*",
+      "drupal/image": "*"
+    }
+  }
+  

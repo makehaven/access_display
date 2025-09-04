@@ -1,0 +1,30 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * When a new access log is created, update presence (de-dupe).
+ */
+function access_display_entity_insert(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() !== 'access_control_log') {
+    return;
+  }
+  if ($entity->bundle() !== 'access_control_request') {
+    return;
+  }
+  $result_ok = (int) $entity->get('field_access_request_result')->value === 1;
+  if (!$result_ok) {
+    return;
+  }
+
+  $user = $entity->get('field_access_request_user')->entity;
+  if (!$user) {
+    return;
+  }
+
+  $permission_term = $entity->get('field_access_request_permission')->entity;
+  $door = $permission_term ? $permission_term->label() : 'Unknown';
+  $ts = (int) $entity->get('created')->value;
+
+  \Drupal::service('access_display.updater')->upsert($user, $door, $ts);
+}
