@@ -30,10 +30,23 @@ class PresenceFeedController extends ControllerBase {
     }
 
     if ($permission !== '_all') {
-      // Get all user IDs that have the required permission.
+      // Get all role IDs that have the specified permission.
+      $roles_with_permission = [];
+      $roles = \Drupal\user\Entity\Role::loadMultiple();
+      foreach ($roles as $role) {
+        if ($role->hasPermission($permission)) {
+          $roles_with_permission[] = $role->id();
+        }
+      }
+
+      if (empty($roles_with_permission)) {
+        return new JsonResponse(['items' => [], 'now' => time()]);
+      }
+
+      // Get all user IDs that have one of the roles.
       $uids = \Drupal::entityQuery('user')
         ->condition('status', 1)
-        ->condition('permission', $permission)
+        ->condition('roles', $roles_with_permission, 'IN')
         ->accessCheck(FALSE)
         ->execute();
 

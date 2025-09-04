@@ -36,7 +36,7 @@ class DisplayController extends ControllerBase {
       $feed_url .= '/' . $source;
     }
 
-    $content = <<<HTML
+    $template = <<<'HTML'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +44,7 @@ class DisplayController extends ControllerBase {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Access Display</title>
   <style>
-    {$this->getCustomCss()}
+%s
   </style>
 </head>
 <body>
@@ -53,7 +53,7 @@ class DisplayController extends ControllerBase {
 
   <script>
   (function () {
-    const FEED = '{$feed_url}';
+    const FEED = '%s';
 
     // Ensure a grid exists even if the editor strips it.
     let main = document.querySelector('main.kiosk');
@@ -93,7 +93,7 @@ class DisplayController extends ControllerBase {
 
       const meta = document.createElement('div');
       meta.className = 'k-meta';
-      meta.textContent = `\${it.door} — \${d}\${it.count > 1 ? ` (x\${it.count})` : ''}`;
+      meta.textContent = `${it.door} — ${d}${it.count > 1 ? ` (x${it.count})` : ''}`;
 
       el.appendChild(name);
       el.appendChild(meta);
@@ -111,7 +111,7 @@ class DisplayController extends ControllerBase {
     async function tick() {
       if (fetching) return; fetching = true;
       try {
-        const url = lastSeen ? `\${FEED}?after=\${lastSeen}&limit=24` : `\${FEED}?limit=24`;
+        const url = lastSeen ? `${FEED}?after=${lastSeen}&limit=24` : `${FEED}?limit=24`;
         const rsp = await fetch(url, { cache: 'no-store' });
         if (!rsp.ok) { console.error('Feed HTTP', rsp.status); return; }
         const data = await rsp.json();
@@ -130,6 +130,7 @@ class DisplayController extends ControllerBase {
 </body>
 </html>
 HTML;
+    $content = sprintf($template, $this->getCustomCss(), $feed_url);
     return new Response($content);
   }
 
