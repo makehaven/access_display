@@ -16,21 +16,22 @@ class DisplayController extends ControllerBase {
    *
    * @param string $code_word
    *   The secret code word for access.
-   * @param string $permission
+   * @param string|null $permission
    *   The permission to filter by.
-   * @param string $source
+   * @param string|null $source
    *   (optional) The source to filter by.
    *
    * @return \Symfony\Component\HttpFoundation\Response
    *   The rendered page.
    */
-  public function displayPage(string $code_word, string $permission, string $source = NULL) {
+  public function displayPage(string $code_word, ?string $permission = NULL, ?string $source = NULL) {
     $config_code_word = $this->config('access_display.settings')->get('code_word');
     if ($config_code_word && $code_word !== $config_code_word) {
       throw new AccessDeniedHttpException();
     }
 
-    $feed_url = '/access-display/presence/' . $permission;
+    $feed_permission = $permission ?? '_all';
+    $feed_url = '/access-display/presence/' . $feed_permission;
     if ($source) {
       $feed_url .= '/' . $source;
     }

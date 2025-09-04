@@ -29,17 +29,19 @@ class PresenceFeedController extends ControllerBase {
       $q->condition('door', $source);
     }
 
-    // Get all user IDs that have the required permission.
-    $uids = \Drupal::entityQuery('user')
-      ->condition('status', 1)
-      ->condition('permission', $permission)
-      ->execute();
+    if ($permission !== '_all') {
+      // Get all user IDs that have the required permission.
+      $uids = \Drupal::entityQuery('user')
+        ->condition('status', 1)
+        ->condition('permission', $permission)
+        ->execute();
 
-    if (empty($uids)) {
-      return new JsonResponse(['items' => [], 'now' => time()]);
+      if (empty($uids)) {
+        return new JsonResponse(['items' => [], 'now' => time()]);
+      }
+
+      $q->condition('p.uid', $uids, 'IN');
     }
-
-    $q->condition('p.uid', $uids, 'IN');
 
     $rows = $q->execute()->fetchAllAssoc('uid');
 

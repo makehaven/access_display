@@ -90,15 +90,22 @@ class SettingsForm extends ConfigFormBase {
     ];
 
     $form['usage']['help'] = [
-      '#markup' => $this->t('<p>The access display page is available at URLs formatted like <code>/display/access-request/{code_word}/{permission}/{source}</code>.</p>
+      '#markup' => $this->t('<p>The access display page is available at the following URLs:</p>
         <ul>
-          <li><code>{code_word}</code> is the secret code word configured above.</li>
-          <li><code>{permission}</code> is the machine name of a user permission. Only users with this permission will be displayed. For example, <code>access content</code> is a common permission for all logged-in users.</li>
-          <li><code>{source}</code> is an optional door name to filter by. For example, <code>main entrance</code>.</li>
+          <li><code>/display/access-request/{code_word}</code> - Displays all access records.</li>
+          <li><code>/display/access-request/{code_word}/{permission}</code> - Filters by a user permission.</li>
+          <li><code>/display/access-request/{code_word}/{permission}/{source}</code> - Filters by permission and a source (e.g., a door name).</li>
         </ul>
-        <p><strong>Example URL:</strong></p>
-        <p>If your code word is <code>kiosk123</code>, and you want to display all users with the <code>access content</code> permission who entered through the <code>main entrance</code>, the URL would be:</p>
-        <code>/display/access-request/kiosk123/access content/main entrance</code>'),
+        <p><strong>URL Parameters:</strong></p>
+        <ul>
+          <li><code>{code_word}</code>: The secret code word configured above.</li>
+          <li><code>{permission}</code>: The machine name of a Drupal user permission (e.g., <code>access content</code>).</li>
+          <li><code>{source}</code>: The name of the source (e.g., a door name like <code>main entrance</code>).</li>
+        </ul>
+        <p><strong>Important:</strong> If your permission or source names contain spaces, you must replace the spaces with <code>%20</code> in the URL.</p>
+        <p><strong>Example:</strong></p>
+        <p>If your code word is <code>kiosk123</code>, you want to filter by the permission <code>access content</code>, and the source is <code>main entrance</code>, your URL would be:</p>
+        <code>/display/access-request/kiosk123/access%20content/main%20entrance</code>'),
     ];
 
     $default_css = $config->get('custom_css') ?: '.kiosk { font-family: system-ui, sans-serif; background:#000; color:#fff; padding:16px; min-height:100vh }
