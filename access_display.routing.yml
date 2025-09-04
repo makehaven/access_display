@@ -1,6 +1,30 @@
+access_display.settings_form:
+  path: '/admin/config/system/access-display'
+  defaults:
+    _form: '\Drupal\access_display\Form\SettingsForm'
+    _title: 'Access Display Settings'
+  requirements:
+    _permission: 'administer site configuration'
+
+access_display.display_page:
+  path: '/display/access-request/{permission}'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
+    source: null
+  requirements:
+    _permission: 'access content'
+
+access_display.display_page_with_source:
+  path: '/display/access-request/{permission}/{source}'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
+  requirements:
+    _permission: 'access content'
+
 access_display.feed:
-  path: '/access-display/presence'
+  path: '/access-display/presence/{permission}/{source}'
   defaults:
     _controller: '\Drupal\access_display\Controller\PresenceFeedController::feed'
+    source: null
   requirements:
     _permission: 'access content'

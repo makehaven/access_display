@@ -11,7 +11,7 @@ use Drupal\Core\Controller\ControllerBase;
  */
 class PresenceFeedController extends ControllerBase {
 
-  public function feed(Request $request): JsonResponse {
+  public function feed(Request $request, string $permission, string $source = NULL): JsonResponse {
     $after = (int) ($request->query->get('after') ?? 0);
     $limit = max(1, min((int) ($request->query->get('limit') ?? 50), 200));
 
@@ -24,6 +24,22 @@ class PresenceFeedController extends ControllerBase {
     if ($after > 0) {
       $q->condition('last_seen', $after, '>');
     }
+
+    if ($source) {
+      $q->condition('door', $source);
+    }
+
+    // Get all user IDs that have the required permission.
+    $uids = \Drupal::entityQuery('user')
+      ->condition('status', 1)
+      ->condition('permission', $permission)
+      ->execute();
+
+    if (empty($uids)) {
+      return new JsonResponse(['items' => [], 'now' => time()]);
+    }
+
+    $q->condition('p.uid', $uids, 'IN');
 
     $rows = $q->execute()->fetchAllAssoc('uid');
 
@@ -70,11 +86,15 @@ class PresenceFeedController extends ControllerBase {
       if (!$file) return NULL;
       $uri = $file->getFileUri();
 
-      // Prefer 'member_photo' image style if available.
+      // Use the configured image style.
       if ($mh->moduleExists('image')) {
-        $style = \Drupal\image\Entity\ImageStyle::load('member_photo');
-        if ($style) {
-          return $style->buildUrl($uri);
+        $config = $this->config('access_display.settings');
+        $image_style_id = $config->get('image_style');
+        if ($image_style_id) {
+          $style = \Drupal\image\Entity\ImageStyle::load($image_style_id);
+          if ($style) {
+            return $style->buildUrl($uri);
+          }
         }
       }
       return \Drupal::service('file_url_generator')->generateAbsoluteString($uri);

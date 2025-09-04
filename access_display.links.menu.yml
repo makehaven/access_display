@@ -1,0 +1,6 @@
+access_display.settings_form:
+  title: 'Access Display'
+  route_name: access_display.settings_form
+  description: 'Configure the access display settings.'
+  parent: system.admin_config_system
+  weight: 99
