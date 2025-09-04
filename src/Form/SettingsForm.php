@@ -77,22 +77,28 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('image_style'),
     ];
 
+    $form['code_word'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Code Word'),
+      '#description' => $this->t('A secret code word to include in the URL for simple protection against scraping. If left blank, no code word is required.'),
+      '#default_value' => $config->get('code_word'),
+    ];
+
     $form['usage'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Usage'),
     ];
 
     $form['usage']['help'] = [
-      '#markup' => $this->t('<p>The access display page is available at URLs formatted like <code>/display/access-request/{permission}/{source}</code>.</p>
+      '#markup' => $this->t('<p>The access display page is available at URLs formatted like <code>/display/access-request/{code_word}/{permission}/{source}</code>.</p>
         <ul>
-          <li><code>{permission}</code> is a required user permission. For example, <code>access content</code>.</li>
+          <li><code>{code_word}</code> is the secret code word configured above.</li>
+          <li><code>{permission}</code> is the machine name of a user permission. Only users with this permission will be displayed. For example, <code>access content</code> is a common permission for all logged-in users.</li>
           <li><code>{source}</code> is an optional door name to filter by. For example, <code>main entrance</code>.</li>
         </ul>
-        <p>Examples:</p>
-        <ul>
-          <li><code>/display/access-request/access content</code></li>
-          <li><code>/display/access-request/access content/main entrance</code></li>
-        </ul>'),
+        <p><strong>Example URL:</strong></p>
+        <p>If your code word is <code>kiosk123</code>, and you want to display all users with the <code>access content</code> permission who entered through the <code>main entrance</code>, the URL would be:</p>
+        <code>/display/access-request/kiosk123/access content/main entrance</code>'),
     ];
 
     $default_css = $config->get('custom_css') ?: '.kiosk { font-family: system-ui, sans-serif; background:#000; color:#fff; padding:16px; min-height:100vh }
@@ -123,6 +129,7 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('access_display.settings')
       ->set('image_style', $form_state->getValue('image_style'))
+      ->set('code_word', $form_state->getValue('code_word'))
       ->set('custom_css', $form_state->getValue('custom_css'))
       ->save();
     parent::submitForm($form, $form_state);

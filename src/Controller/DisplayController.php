@@ -4,6 +4,7 @@ namespace Drupal\access_display\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Controller for the kiosk display page.
@@ -13,6 +14,8 @@ class DisplayController extends ControllerBase {
   /**
    * Renders the kiosk display page.
    *
+   * @param string $code_word
+   *   The secret code word for access.
    * @param string $permission
    *   The permission to filter by.
    * @param string $source
@@ -21,7 +24,12 @@ class DisplayController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\Response
    *   The rendered page.
    */
-  public function displayPage(string $permission, string $source = NULL) {
+  public function displayPage(string $code_word, string $permission, string $source = NULL) {
+    $config_code_word = $this->config('access_display.settings')->get('code_word');
+    if ($config_code_word && $code_word !== $config_code_word) {
+      throw new AccessDeniedHttpException();
+    }
+
     $feed_url = '/access-display/presence/' . $permission;
     if ($source) {
       $feed_url .= '/' . $source;
@@ -102,7 +110,7 @@ class DisplayController extends ControllerBase {
     async function tick() {
       if (fetching) return; fetching = true;
       try {
-        const url = lastSeen ? `${FEED}?after=${lastSeen}&limit=24` : `${FEED}?limit=24`;
+        const url = lastSeen ? `\${FEED}?after=\${lastSeen}&limit=24` : `\${FEED}?limit=24`;
         const rsp = await fetch(url, { cache: 'no-store' });
         if (!rsp.ok) { console.error('Feed HTTP', rsp.status); return; }
         const data = await rsp.json();

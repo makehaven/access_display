@@ -7,7 +7,7 @@ access_display.settings_form:
     _permission: 'administer site configuration'
 
 access_display.display_page:
-  path: '/display/access-request/{permission}'
+  path: '/display/access-request/{code_word}/{permission}'
   defaults:
     _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
     source: null
@@ -15,7 +15,7 @@ access_display.display_page:
     _permission: 'access content'
 
 access_display.display_page_with_source:
-  path: '/display/access-request/{permission}/{source}'
+  path: '/display/access-request/{code_word}/{permission}/{source}'
   defaults:
     _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
   requirements:
