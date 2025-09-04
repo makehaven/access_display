@@ -5,9 +5,10 @@
     "license": "GPL-2.0-or-later",
     "require": {
       "php": ">=8.1",
-      "drupal/core": "^10",
-      "drupal/profile": "*",
-      "drupal/image": "*"
+      "drupal/core": "^10 || ^11"
+    },
+    "suggest": {
+      "drupal/profile": "Needed if you want to include profile photos in the feed."
     }
   }
   
