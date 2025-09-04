@@ -34,6 +34,7 @@ class PresenceFeedController extends ControllerBase {
       $uids = \Drupal::entityQuery('user')
         ->condition('status', 1)
         ->condition('permission', $permission)
+        ->accessCheck(FALSE)
         ->execute();
 
       if (empty($uids)) {

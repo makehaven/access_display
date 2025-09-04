@@ -99,13 +99,12 @@ class SettingsForm extends ConfigFormBase {
         <p><strong>URL Parameters:</strong></p>
         <ul>
           <li><code>{code_word}</code>: The secret code word configured above.</li>
-          <li><code>{permission}</code>: The machine name of a Drupal user permission (e.g., <code>access content</code>).</li>
-          <li><code>{source}</code>: The name of the source (e.g., a door name like <code>main entrance</code>).</li>
+          <li><code>{permission}</code>: The machine name of a Drupal user permission (e.g., <code>door</code>).</li>
+          <li><code>{source}</code>: The name of the source (e.g., a door name like <code>main-entrance</code>).</li>
         </ul>
-        <p><strong>Important:</strong> If your permission or source names contain spaces, you must replace the spaces with <code>%20</code> in the URL.</p>
         <p><strong>Example:</strong></p>
-        <p>If your code word is <code>kiosk123</code>, you want to filter by the permission <code>access content</code>, and the source is <code>main entrance</code>, your URL would be:</p>
-        <code>/display/access-request/kiosk123/access%20content/main%20entrance</code>'),
+        <p>If your code word is <code>kiosk123</code>, you want to filter by the permission <code>door</code>, and the source is <code>main-entrance</code>, your URL would be:</p>
+        <code>/display/access-request/kiosk123/door/main-entrance</code>'),
     ];
 
     $default_css = $config->get('custom_css') ?: '.kiosk { font-family: system-ui, sans-serif; background:#000; color:#fff; padding:16px; min-height:100vh }
