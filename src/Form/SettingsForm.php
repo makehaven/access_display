@@ -77,6 +77,43 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('image_style'),
     ];
 
+    $form['usage'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Usage'),
+    ];
+
+    $form['usage']['help'] = [
+      '#markup' => $this->t('<p>The access display page is available at URLs formatted like <code>/display/access-request/{permission}/{source}</code>.</p>
+        <ul>
+          <li><code>{permission}</code> is a required user permission. For example, <code>access content</code>.</li>
+          <li><code>{source}</code> is an optional door name to filter by. For example, <code>main entrance</code>.</li>
+        </ul>
+        <p>Examples:</p>
+        <ul>
+          <li><code>/display/access-request/access content</code></li>
+          <li><code>/display/access-request/access content/main entrance</code></li>
+        </ul>'),
+    ];
+
+    $default_css = $config->get('custom_css') ?: '.kiosk { font-family: system-ui, sans-serif; background:#000; color:#fff; padding:16px; min-height:100vh }
+.kiosk h1 { margin:0 0 12px; font-size:28px; color:#cfcfcf }
+.k-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:16px }
+.k-card { background:#111; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,.35); overflow:hidden; display:flex; flex-direction:column }
+.k-photo { width:100%; height:220px; object-fit:cover; display:block; background:#222 }
+.k-name { font-weight:600; font-size:18px; padding:10px 12px 0 12px }
+.k-meta { opacity:.85; font-size:14px; padding:4px 12px 12px 12px; color:#c9c9c9; border-top:1px solid rgba(255,255,255,.06) }
+@media (max-width:1200px){ .k-grid{ grid-template-columns: repeat(3,1fr) } }
+@media (max-width:900px){ .k-grid{ grid-template-columns: repeat(2,1fr) } }
+@media (max-width:600px){ .k-grid{ grid-template-columns: repeat(1,1fr) } }';
+
+    $form['custom_css'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Custom CSS'),
+      '#description' => $this->t('Add custom CSS to style the display page. This will be added to the <code>&lt;style&gt;</code> tag on the page.'),
+      '#default_value' => $default_css,
+      '#rows' => 15,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -86,6 +123,7 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('access_display.settings')
       ->set('image_style', $form_state->getValue('image_style'))
+      ->set('custom_css', $form_state->getValue('custom_css'))
       ->save();
     parent::submitForm($form, $form_state);
   }

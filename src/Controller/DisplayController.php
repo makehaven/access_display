@@ -35,18 +35,7 @@ class DisplayController extends ControllerBase {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Access Display</title>
   <style>
-    .kiosk { font-family: system-ui, sans-serif; background:#000; color:#fff; padding:16px; min-height:100vh }
-    .kiosk h1 { margin:0 0 12px; font-size:28px; color:#cfcfcf }
-
-    .k-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:16px }
-    .k-card { background:#111; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,.35); overflow:hidden; display:flex; flex-direction:column }
-    .k-photo { width:100%; height:220px; object-fit:cover; display:block; background:#222 }
-    .k-name { font-weight:600; font-size:18px; padding:10px 12px 0 12px }
-    .k-meta { opacity:.85; font-size:14px; padding:4px 12px 12px 12px; color:#c9c9c9; border-top:1px solid rgba(255,255,255,.06) }
-
-    @media (max-width:1200px){ .k-grid{ grid-template-columns: repeat(3,1fr) } }
-    @media (max-width:900px){ .k-grid{ grid-template-columns: repeat(2,1fr) } }
-    @media (max-width:600px){ .k-grid{ grid-template-columns: repeat(1,1fr) } }
+    {$this->getCustomCss()}
   </style>
 </head>
 <body>
@@ -133,6 +122,28 @@ class DisplayController extends ControllerBase {
 </html>
 HTML;
     return new Response($content);
+  }
+
+  /**
+   * Gets the custom CSS from the configuration.
+   *
+   * @return string
+   *   The custom CSS.
+   */
+  protected function getCustomCss() {
+    $config = $this->config('access_display.settings');
+    $default_css = '.kiosk { font-family: system-ui, sans-serif; background:#000; color:#fff; padding:16px; min-height:100vh }
+.kiosk h1 { margin:0 0 12px; font-size:28px; color:#cfcfcf }
+.k-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:16px }
+.k-card { background:#111; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,.35); overflow:hidden; display:flex; flex-direction:column }
+.k-photo { width:100%; height:220px; object-fit:cover; display:block; background:#222 }
+.k-name { font-weight:600; font-size:18px; padding:10px 12px 0 12px }
+.k-meta { opacity:.85; font-s
+ize:14px; padding:4px 12px 12px 12px; color:#c9c9c9; border-top:1px solid rgba(255,255,255,.06) }
+@media (max-width:1200px){ .k-grid{ grid-template-columns: repeat(3,1fr) } }
+@media (max-width:900px){ .k-grid{ grid-template-columns: repeat(2,1fr) } }
+@media (max-width:600px){ .k-grid{ grid-template-columns: repeat(1,1fr) } }';
+    return $config->get('custom_css') ?: $default_css;
   }
 
 }
