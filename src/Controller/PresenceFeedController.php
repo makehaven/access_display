@@ -11,7 +11,7 @@ use Drupal\Core\Controller\ControllerBase;
  */
 class PresenceFeedController extends ControllerBase {
 
-  public function feed(Request $request): JsonResponse {
+  public function feed(Request $request, string $permission, string $source = NULL): JsonResponse {
     $after = (int) ($request->query->get('after') ?? 0);
     $limit = max(1, min((int) ($request->query->get('limit') ?? 50), 200));
 
@@ -23,6 +23,38 @@ class PresenceFeedController extends ControllerBase {
 
     if ($after > 0) {
       $q->condition('last_seen', $after, '>');
+    }
+
+    if ($source) {
+      $q->condition('door', $source);
+    }
+
+    if ($permission !== '_all') {
+      // Get all role IDs that have the specified permission.
+      $roles_with_permission = [];
+      $roles = \Drupal\user\Entity\Role::loadMultiple();
+      foreach ($roles as $role) {
+        if ($role->hasPermission($permission)) {
+          $roles_with_permission[] = $role->id();
+        }
+      }
+
+      if (empty($roles_with_permission)) {
+        return new JsonResponse(['items' => [], 'now' => time()]);
+      }
+
+      // Get all user IDs that have one of the roles.
+      $uids = \Drupal::entityQuery('user')
+        ->condition('status', 1)
+        ->condition('roles', $roles_with_permission, 'IN')
+        ->accessCheck(FALSE)
+        ->execute();
+
+      if (empty($uids)) {
+        return new JsonResponse(['items' => [], 'now' => time()]);
+      }
+
+      $q->condition('p.uid', $uids, 'IN');
     }
 
     $rows = $q->execute()->fetchAllAssoc('uid');
@@ -70,11 +102,15 @@ class PresenceFeedController extends ControllerBase {
       if (!$file) return NULL;
       $uri = $file->getFileUri();
 
-      // Prefer 'member_photo' image style if available.
+      // Use the configured image style.
       if ($mh->moduleExists('image')) {
-        $style = \Drupal\image\Entity\ImageStyle::load('member_photo');
-        if ($style) {
-          return $style->buildUrl($uri);
+        $config = $this->config('access_display.settings');
+        $image_style_id = $config->get('image_style');
+        if ($image_style_id) {
+          $style = \Drupal\image\Entity\ImageStyle::load($image_style_id);
+          if ($style) {
+            return $style->buildUrl($uri);
+          }
         }
       }
       return \Drupal::service('file_url_generator')->generateAbsoluteString($uri);

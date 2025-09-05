@@ -1,6 +1,46 @@
-access_display.feed:
-  path: '/access-display/presence'
+access_display.settings_form:
+  path: '/admin/config/system/access-display'
+  defaults:
+    _form: '\Drupal\access_display\Form\SettingsForm'
+    _title: 'Access Display Settings'
+  requirements:
+    _permission: 'administer site configuration'
+
+access_display.display_page_full:
+  path: '/display/access-request/{code_word}/{permission}/{source}'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
+  requirements:
+    _permission: 'access content'
+
+access_display.display_page_permission:
+  path: '/display/access-request/{code_word}/{permission}'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
+    source: null
+  requirements:
+    _permission: 'access content'
+
+access_display.display_page_code_only:
+  path: '/display/access-request/{code_word}'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
+    permission: null
+    source: null
+  requirements:
+    _permission: 'access content'
+
+access_display.feed_full:
+  path: '/access-display/presence/{permission}/{source}'
   defaults:
     _controller: '\Drupal\access_display\Controller\PresenceFeedController::feed'
+  requirements:
+    _permission: 'access content'
+
+access_display.feed_permission:
+  path: '/access-display/presence/{permission}'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\PresenceFeedController::feed'
+    source: null
   requirements:
     _permission: 'access content'
