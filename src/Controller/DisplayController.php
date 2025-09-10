@@ -77,6 +77,7 @@ class DisplayController extends ControllerBase {
     function card(it) {
       const d = new Date(it.last * 1000).toLocaleString([], {hour:'2-digit', minute:'2-digit'});
       const el = document.createElement('article');
+      el.id = `k-card-${it.uid}`;
       el.className = 'k-card';
 
       if (it.photo) {
@@ -102,6 +103,7 @@ class DisplayController extends ControllerBase {
 
     function render(items) {
       for (const it of items) {
+        document.getElementById(`k-card-${it.uid}`)?.remove();
         GRID.prepend(card(it));
         lastSeen = Math.max(lastSeen, it.last);
       }
