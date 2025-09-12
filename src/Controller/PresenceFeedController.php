@@ -18,7 +18,7 @@ class PresenceFeedController extends ControllerBase {
     $db = \Drupal::database();
     $q = $db->select('access_display_presence', 'p')
       ->fields('p', ['uid','user_uuid','realname','door','first_seen','last_seen','scan_count'])
-      ->orderBy('last_seen', 'ASC')
+      ->orderBy('last_seen', 'DESC')
       ->range(0, $limit);
 
     if ($after > 0) {
@@ -73,6 +73,14 @@ class PresenceFeedController extends ControllerBase {
         'photo' => $this->photoUrl($uid), // safe, optional
       ];
     }
+
+    // Reverse the array so that the newest items (which we queried for) are last.
+    // The javascript client will then display them in that order, so newest is at the top.
+    // However, if the client reverses the list, this will be wrong.
+    // Based on user feedback, the client expects ASC order.
+    // The DB query is DESC to get the N most recent items.
+    // We reverse them here to send them to the client in ASC order.
+    $items = array_reverse($items);
 
     $res = new JsonResponse(['items' => $items, 'now' => time()]);
     $res->headers->set('Cache-Control', 'no-store, max-age=0');
