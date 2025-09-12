@@ -84,6 +84,13 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('code_word'),
     ];
 
+    $form['verbose_logging'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable verbose logging'),
+      '#description' => $this->t('If checked, detailed logs will be recorded for entity insertions and access control events.'),
+      '#default_value' => $config->get('verbose_logging'),
+    ];
+
     $form['usage'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Usage'),
@@ -137,6 +144,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('image_style', $form_state->getValue('image_style'))
       ->set('code_word', $form_state->getValue('code_word'))
       ->set('custom_css', $form_state->getValue('custom_css'))
+      ->set('verbose_logging', $form_state->getValue('verbose_logging'))
       ->save();
     parent::submitForm($form, $form_state);
   }

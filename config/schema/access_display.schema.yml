@@ -1,0 +1,16 @@
+access_display.settings:
+  type: mapping
+  label: 'Access Display Settings'
+  mapping:
+    image_style:
+      type: string
+      label: 'Image Style'
+    code_word:
+      type: string
+      label: 'Code Word'
+    custom_css:
+      type: string
+      label: 'Custom CSS'
+    verbose_logging:
+      type: boolean
+      label: 'Enable verbose logging'
