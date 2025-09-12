@@ -18,7 +18,7 @@ class PresenceFeedController extends ControllerBase {
     $db = \Drupal::database();
     $q = $db->select('access_display_presence', 'p')
       ->fields('p', ['uid','user_uuid','realname','door','first_seen','last_seen','scan_count'])
-      ->orderBy('last_seen', 'ASC')
+      ->orderBy('last_seen', 'DESC')
       ->range(0, $limit);
 
     if ($after > 0) {
