@@ -74,6 +74,14 @@ class PresenceFeedController extends ControllerBase {
       ];
     }
 
+    // Reverse the array so that the newest items (which we queried for) are last.
+    // The javascript client will then display them in that order, so newest is at the top.
+    // However, if the client reverses the list, this will be wrong.
+    // Based on user feedback, the client expects ASC order.
+    // The DB query is DESC to get the N most recent items.
+    // We reverse them here to send them to the client in ASC order.
+    $items = array_reverse($items);
+
     $res = new JsonResponse(['items' => $items, 'now' => time()]);
     $res->headers->set('Cache-Control', 'no-store, max-age=0');
     return $res;
