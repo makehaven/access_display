@@ -6,20 +6,20 @@ use Drupal\Core\Entity\EntityInterface;
  * React to access_control_log inserts and update presence.
  */
 function access_display_entity_insert(EntityInterface $entity) {
-  \Drupal::logger('access_display')->notice(
-    'entity_insert: type=@type bundle=@bundle id=@id',
-    ['@type' => $entity->getEntityTypeId(), '@bundle' => $entity->bundle(), '@id' => method_exists($entity, 'id') ? $entity->id() : 'n/a']
-  );
+  if ($entity->getEntityTypeId() !== 'access_control_log') {
+    return;
+  }
 
-  if ($entity->getEntityTypeId() !== 'access_control_log') { return; }
+  $logger = \Drupal::logger('access_display');
+
   if ($entity->bundle() !== 'access_control_request') {
-    \Drupal::logger('access_display')->notice('Skip insert: unexpected bundle @b', ['@b' => $entity->bundle()]);
+    $logger->warning('Skip insert: unexpected bundle @b', ['@b' => $entity->bundle()]);
     return;
   }
 
   foreach (['field_access_request_user','field_access_request_result','field_access_request_permission'] as $f) {
     if (!$entity->hasField($f)) {
-      \Drupal::logger('access_display')->warning('Skip insert: missing field @f', ['@f' => $f]);
+      $logger->warning('Skip insert: missing field @f', ['@f' => $f]);
       return;
     }
   }
@@ -27,24 +27,24 @@ function access_display_entity_insert(EntityInterface $entity) {
   $result_raw = $entity->get('field_access_request_result')->value;
   $granted = (string) $result_raw === '1' || $result_raw === 1 || $result_raw === TRUE;
   if (!$granted) {
-    \Drupal::logger('access_display')->notice('Skip insert: result not granted (@v)', ['@v' => var_export($result_raw, TRUE)]);
+    $logger->debug('Skip insert: result not granted (@v)', ['@v' => var_export($result_raw, TRUE)]);
     return;
   }
 
   $user = $entity->get('field_access_request_user')->entity;
-  if (!$user) { \Drupal::logger('access_display')->warning('Skip insert: no user entity'); return; }
+  if (!$user) { $logger->warning('Skip insert: no user entity'); return; }
 
   $term = $entity->get('field_access_request_permission')->entity;
   $door = $term ? $term->label() : 'Unknown';
   $ts = (int) $entity->get('created')->value ?: \Drupal::time()->getRequestTime();
 
-  \Drupal::logger('access_display')->notice('Presence upsert uid=@uid door=@door ts=@ts', [
+  $logger->debug('Presence upsert uid=@uid door=@door ts=@ts', [
     '@uid' => $user->id(), '@door' => $door, '@ts' => $ts
   ]);
 
   try {
     \Drupal::service('access_display.updater')->upsert($user, $door, $ts);
   } catch (\Throwable $e) {
-    \Drupal::logger('access_display')->error('Updater failed: @m', ['@m' => $e->getMessage()]);
+    $logger->error('Updater failed: @m', ['@m' => $e->getMessage()]);
   }
 }
