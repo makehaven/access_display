@@ -75,7 +75,7 @@ class DisplayController extends ControllerBase {
     let lastSeen = 0, fetching = false;
 
     function card(it) {
-      const d = new Date(it.last * 1000).toLocaleString([], {hour:'2-digit', minute:'2-digit'});
+      const d = new Date(it.last * 1000).toLocaleString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/New_York'});
       const el = document.createElement('article');
       el.id = `k-card-${it.uid}`;
       el.className = 'k-card';
