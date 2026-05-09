@@ -59,6 +59,8 @@ class PresenceFeedController extends ControllerBase {
 
     $rows = $q->execute()->fetchAllAssoc('uid');
 
+    $guestCounts = $this->guestCountsForRows($rows);
+
     $items = [];
     foreach ($rows as $r) {
       $uid = (int) $r->uid;
@@ -70,6 +72,7 @@ class PresenceFeedController extends ControllerBase {
         'first' => (int) $r->first_seen,
         'last'  => (int) $r->last_seen,
         'count' => (int) $r->scan_count,
+        'guest_count' => (int) ($guestCounts[$uid] ?? 0),
         'photo' => $this->photoUrl($uid), // safe, optional
       ];
     }
@@ -85,6 +88,52 @@ class PresenceFeedController extends ControllerBase {
     $res = new JsonResponse(['items' => $items, 'now' => time()]);
     $res->headers->set('Cache-Control', 'no-store, max-age=0');
     return $res;
+  }
+
+  /**
+   * Count guest_checkin log rows per host since each host's first_seen.
+   *
+   * Reads field_host_member, which is set on every guest_checkin row that
+   * has a known host: ward pre-check-ins (host = guardian), waiver-signup
+   * with a typed host email that resolved to a real user, and any future
+   * QR check-ins where the user's last-known host is propagated. Adult
+   * guests who never declared a host stay uncounted, by design.
+   *
+   * @param array $rows
+   *   Presence rows keyed by uid (each with first_seen).
+   *
+   * @return array<int, int>
+   *   uid => count of guest_checkin rows since that uid's first_seen.
+   */
+  private function guestCountsForRows(array $rows): array {
+    if (!$rows) {
+      return [];
+    }
+    $counts = [];
+    $storage = \Drupal::entityTypeManager()->getStorage('access_control_log');
+    foreach ($rows as $r) {
+      $uid = (int) $r->uid;
+      $first = (int) $r->first_seen;
+      if ($uid <= 0 || $first <= 0) {
+        continue;
+      }
+      try {
+        $counts[$uid] = (int) $storage->getQuery()
+          ->accessCheck(FALSE)
+          ->condition('type', 'guest_checkin')
+          ->condition('field_host_member', $uid)
+          ->condition('created', $first, '>=')
+          ->count()
+          ->execute();
+      }
+      catch (\Throwable $e) {
+        \Drupal::logger('access_display')->error('Guest count failed for uid @uid: @msg', [
+          '@uid' => $uid,
+          '@msg' => $e->getMessage(),
+        ]);
+      }
+    }
+    return $counts;
   }
 
   /**

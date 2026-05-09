@@ -5,4 +5,5 @@ core_version_requirement: ^10 || ^11
 package: Makerspace
 dependencies:
   - drupal:user
+  - eck:eck
 configure: access_display.settings_form

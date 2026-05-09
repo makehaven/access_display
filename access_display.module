@@ -3,6 +3,21 @@
 use Drupal\Core\Entity\EntityInterface;
 
 /**
+ * Implements hook_theme().
+ */
+function access_display_theme($existing, $type, $theme, $path) {
+  return [
+    'access_display_guest_checkin_confirmation' => [
+      'variables' => [
+        'guest_name' => '',
+        'checked_in_at' => 0,
+      ],
+      'template' => 'access-display-guest-checkin-confirmation',
+    ],
+  ];
+}
+
+/**
  * React to access_control_log inserts and update presence.
  */
 function access_display_entity_insert(EntityInterface $entity) {

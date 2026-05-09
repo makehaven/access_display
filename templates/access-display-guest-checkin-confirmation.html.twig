@@ -1,0 +1,20 @@
+{#
+/**
+ * @file
+ * Confirmation page rendered after a successful guest check-in via /checkin/guest/{token}.
+ *
+ * Available variables:
+ * - guest_name: Display name of the checked-in guest.
+ * - checked_in_at: Unix timestamp of the check-in.
+ */
+#}
+<div class="guest-checkin-confirmation">
+  <h1>You're checked in, {{ guest_name }}.</h1>
+  <p>{{ 'Welcome back to MakeHaven.'|t }}</p>
+  <p class="guest-checkin-confirmation__time">
+    {{ 'Checked in at'|t }} {{ checked_in_at|format_date('short') }}
+  </p>
+  <hr>
+  <h2>{{ 'One last thing'|t }}</h2>
+  <p>{{ 'Please grab a name-tag sticker from the front desk and check the "I signed the waiver" box.'|t }}</p>
+</div>

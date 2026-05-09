@@ -44,3 +44,24 @@ access_display.feed_permission:
     source: null
   requirements:
     _permission: 'access content'
+
+access_display.guest_checkin:
+  path: '/checkin/guest/{token}'
+  defaults:
+    _controller: '\Drupal\access_display\Controller\GuestCheckInController::check'
+    _title: 'Guest check-in'
+  requirements:
+    _access: 'TRUE'
+    token: '[A-Za-z0-9]{8,64}'
+  options:
+    no_cache: TRUE
+
+access_display.guest_waiver_resign:
+  path: '/form/guest_waiver_resign'
+  defaults:
+    _form: '\Drupal\access_display\Form\GuestWaiverResignForm'
+    _title: 'Re-sign your waiver'
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE

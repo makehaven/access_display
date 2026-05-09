@@ -2,3 +2,7 @@ services:
   access_display.updater:
     class: Drupal\access_display\Service\PresenceUpdater
     arguments: ['@database', '@entity_type.manager']
+
+  access_display.guest_token_manager:
+    class: Drupal\access_display\Service\GuestTokenManager
+    arguments: ['@entity_type.manager']

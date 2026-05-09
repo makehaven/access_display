@@ -98,6 +98,13 @@ class DisplayController extends ControllerBase {
 
       el.appendChild(name);
       el.appendChild(meta);
+
+      if (it.guest_count && it.guest_count > 0) {
+        const guests = document.createElement('div');
+        guests.className = 'k-guests';
+        guests.textContent = `+ ${it.guest_count} guest${it.guest_count === 1 ? '' : 's'}`;
+        el.appendChild(guests);
+      }
       return el;
     }
 
@@ -150,7 +157,8 @@ HTML;
 .k-card { background:#111; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,.35); overflow:hidden; display:flex; flex-direction:column }
 .k-photo { width:100%; height:220px; object-fit:cover; display:block; background:#222 }
 .k-name { font-weight:600; font-size:18px; padding:10px 12px 0 12px }
-.k-meta { opacity:.85; font-size:14px; padding:4px 12px 12px 12px; color:#c9c9c9; border-top:1px solid rgba(255,255,255,.06) }
+.k-meta { opacity:.85; font-size:14px; padding:4px 12px 4px 12px; color:#c9c9c9; border-top:1px solid rgba(255,255,255,.06) }
+.k-guests { font-size:14px; padding:4px 12px 12px 12px; color:#fff; background:rgba(255,255,255,.08); font-weight:600 }
 @media (max-width:1200px){ .k-grid{ grid-template-columns: repeat(3,1fr) } }
 @media (max-width:900px){ .k-grid{ grid-template-columns: repeat(2,1fr) } }
 @media (max-width:600px){ .k-grid{ grid-template-columns: repeat(1,1fr) } }';
