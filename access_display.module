@@ -49,6 +49,15 @@ function access_display_entity_insert(EntityInterface $entity) {
   $user = $entity->get('field_access_request_user')->entity;
   if (!$user) { $logger->warning('Skip insert: no user entity'); return; }
 
+  // Service accounts (delivery, cleaning, and card-test rigs that swipe
+  // continuously) carry the 'services' role. Keep them off the member-facing
+  // presence display: they have no member photo and would otherwise dominate
+  // the "Recent Entries" grid. Members, instructors, and guests still appear.
+  if ($user->hasRole('services')) {
+    $logger->debug('Skip presence: service account uid=@uid', ['@uid' => $user->id()]);
+    return;
+  }
+
   $term = $entity->get('field_access_request_permission')->entity;
   $door = $term ? $term->label() : 'Unknown';
   $ts = (int) $entity->get('created')->value ?: \Drupal::time()->getRequestTime();
