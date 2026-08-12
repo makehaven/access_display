@@ -133,7 +133,9 @@ class DisplayController extends ControllerBase {
     }
 
     tick();
-    setInterval(tick, 7000);
+    // 30s poll: the 7s cadence was ~12k requests/day against Pantheon's
+    // pages-served limit; presence changes don't need sub-30s freshness.
+    setInterval(tick, 30000);
   })();
   </script>
 </body>

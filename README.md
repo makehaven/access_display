@@ -8,7 +8,7 @@ This module is ideal for scenarios like building entrances, event check-ins, or 
 
 ## Features
 
-*   **Real-Time Updates**: The kiosk page polls for new access events every 7 seconds, ensuring the display is always up-to-date without requiring a page refresh.
+*   **Real-Time Updates**: The kiosk page polls for new access events every 30 seconds, ensuring the display is always up-to-date without requiring a page refresh.
 *   **Event De-duplication**: Prevents a single user entry from creating multiple display cards. If a user triggers multiple access events within a 5-minute window, the system intelligently groups them into a single event, updating the timestamp and incrementing a counter.
 *   **Customizable Kiosk Display**: The display page is a self-contained HTML page. You can apply custom CSS directly from the module's settings page to match your organization's branding.
 *   **Simple & Secure Display URL**: Access to the kiosk page is protected by a configurable "code word," preventing unauthorized viewing or scraping.
