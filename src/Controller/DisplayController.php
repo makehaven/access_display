@@ -38,8 +38,10 @@ class DisplayController extends ControllerBase {
   }
 
   /**
-   * Unwraps a <style> element so its CSS can be merged into this page's
-   * existing single style block.
+   * Unwraps a style element down to its bare CSS.
+   *
+   * The page carries a single style block, so the shared runtime's stylesheet
+   * is merged into it rather than added as a second one.
    *
    * @param string $style_element
    *   A style element, possibly empty.
