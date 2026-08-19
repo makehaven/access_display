@@ -3,6 +3,8 @@
 namespace Drupal\access_display\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\makerspace_kiosk\KioskResilience;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -10,6 +12,44 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  * Controller for the kiosk display page.
  */
 class DisplayController extends ControllerBase {
+
+  /**
+   * The shared kiosk resilience runtime.
+   *
+   * @var \Drupal\makerspace_kiosk\KioskResilience
+   */
+  protected KioskResilience $kioskResilience;
+
+  /**
+   * Constructs a DisplayController.
+   *
+   * @param \Drupal\makerspace_kiosk\KioskResilience $kiosk_resilience
+   *   The shared kiosk resilience runtime.
+   */
+  public function __construct(KioskResilience $kiosk_resilience) {
+    $this->kioskResilience = $kiosk_resilience;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('makerspace_kiosk.resilience'));
+  }
+
+  /**
+   * Unwraps a <style> element so its CSS can be merged into this page's
+   * existing single style block.
+   *
+   * @param string $style_element
+   *   A style element, possibly empty.
+   *
+   * @return string
+   *   The bare CSS.
+   */
+  protected function stripStyleTag(string $style_element): string {
+    return preg_replace('#^<style>|</style>$#', '', $style_element) ?? '';
+  }
 
   /**
    * Renders the kiosk display page.
@@ -72,7 +112,7 @@ class DisplayController extends ControllerBase {
       main.appendChild(GRID);
     }
 
-    let lastSeen = 0, fetching = false;
+    let lastSeen = 0;
 
     function card(it) {
       const d = new Date(it.last * 1000).toLocaleString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/New_York'});
@@ -117,31 +157,45 @@ class DisplayController extends ControllerBase {
       while (GRID.children.length > 24) GRID.removeChild(GRID.lastChild);
     }
 
-    async function tick() {
-      if (fetching) return; fetching = true;
-      try {
-        const url = lastSeen ? `${FEED}?after=${lastSeen}&limit=24` : `${FEED}?limit=24`;
-        const rsp = await fetch(url, { cache: 'no-store' });
-        if (!rsp.ok) { console.error('Feed HTTP', rsp.status); return; }
-        const data = await rsp.json();
-        if (Array.isArray(data.items) && data.items.length) render(data.items);
-      } catch (e) {
-        console.error('Feed error', e);
-      } finally {
-        fetching = false;
-      }
-    }
-
-    tick();
-    // 30s poll: the 7s cadence was ~12k requests/day against Pantheon's
-    // pages-served limit; presence changes don't need sub-30s freshness.
-    setInterval(tick, 30000);
+    // Polling, backoff, staleness and recovery all belong to the shared kiosk
+    // runtime (makerspace_kiosk). This board previously swallowed every fetch
+    // error, and because the grid only ever appends, a dead feed rendered
+    // identically to a live one - it was failing silently for who knows how
+    // long. The status chip is the fix for that specifically.
+    window.__accessDisplayFeedUrl = function () {
+      return lastSeen ? `${FEED}?after=${lastSeen}&limit=24` : `${FEED}?limit=24`;
+    };
+    window.__accessDisplayRender = function (data) {
+      if (Array.isArray(data.items) && data.items.length) render(data.items);
+    };
   })();
   </script>
+%s
 </body>
 </html>
 HTML;
-    $content = sprintf($template, $this->getCustomCss(), $feed_url);
+    $kiosk = $this->kioskResilience;
+    $script = $kiosk->script(
+      [
+        'screenId' => 'faces' . ($permission ? '-' . $permission : ''),
+        // Unchanged from the previous hardcoded cadence: the 7s poll was
+        // ~12k requests/day against Pantheon's pages-served limit, and
+        // presence changes do not need sub-30s freshness.
+        'intervalMs' => 30000,
+        'statusChipPosition' => 'bottom-right',
+      ],
+      [
+        'feedUrl' => 'function () { return window.__accessDisplayFeedUrl(); }',
+        'onData' => 'function (data) { window.__accessDisplayRender(data); }',
+      ]
+    );
+
+    $content = sprintf(
+      $template,
+      $this->getCustomCss() . "\n" . $this->stripStyleTag($kiosk->styles()),
+      $feed_url,
+      $script
+    );
     return new Response($content);
   }
 

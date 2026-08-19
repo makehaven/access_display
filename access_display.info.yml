@@ -6,4 +6,5 @@ package: Makerspace
 dependencies:
   - drupal:user
   - eck:eck
+  - drupal:makerspace_kiosk
 configure: access_display.settings_form
