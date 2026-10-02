@@ -1,0 +1,22 @@
+access_display.settings:
+  type: config_object
+  label: 'Access Display settings'
+  mapping:
+    image_style:
+      type: string
+      label: 'Image style for member photos'
+    code_word:
+      type: string
+      label: 'Code word required in the display URL'
+    custom_css:
+      type: string
+      label: 'Custom CSS for the display page'
+    allowed_ips:
+      type: sequence
+      label: 'IP addresses or CIDR ranges allowed to view the display and feed'
+      sequence:
+        type: string
+        label: 'IP address or CIDR range'
+    feed_window_hours:
+      type: integer
+      label: 'Presence feed recency window in hours'

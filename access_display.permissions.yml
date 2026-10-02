@@ -1,0 +1,4 @@
+view access display:
+  title: 'View the access display and presence feed from any network'
+  description: 'Staff viewing the recent-entries kiosk remotely. Without this, only clients on the allowed IP list can load it.'
+  restrict access: true

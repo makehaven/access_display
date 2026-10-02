@@ -11,13 +11,40 @@ use Drupal\Core\Controller\ControllerBase;
  */
 class PresenceFeedController extends ControllerBase {
 
-  public function feed(Request $request, string $permission, string $source = NULL): JsonResponse {
+  /**
+   * Default recency window, in hours, when none is configured.
+   */
+  const DEFAULT_WINDOW_HOURS = 24;
+
+  /**
+   * Returns recent presence rows as JSON for the kiosk display.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request; reads the optional "after" and "limit" query parameters.
+   * @param string $permission
+   *   A permission machine name to filter by, or "_all".
+   * @param string|null $source
+   *   (optional) A door name to filter by.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The feed.
+   */
+  public function feed(Request $request, string $permission, ?string $source = NULL): JsonResponse {
     $after = (int) ($request->query->get('after') ?? 0);
     $limit = max(1, min((int) ($request->query->get('limit') ?? 50), 200));
 
+    // Only recent activity is served: the presence table is never pruned, and
+    // the kiosk has no use for entries older than the window.
+    $window_hours = (int) $this->config('access_display.settings')->get('feed_window_hours');
+    if ($window_hours <= 0) {
+      $window_hours = self::DEFAULT_WINDOW_HOURS;
+    }
+    $cutoff = \Drupal::time()->getRequestTime() - ($window_hours * 3600);
+
     $db = \Drupal::database();
     $q = $db->select('access_display_presence', 'p')
-      ->fields('p', ['uid','user_uuid','realname','door','first_seen','last_seen','scan_count'])
+      ->fields('p', ['uid', 'realname', 'door', 'first_seen', 'last_seen', 'scan_count'])
+      ->condition('last_seen', $cutoff, '>=')
       ->orderBy('last_seen', 'DESC')
       ->range(0, $limit);
 
@@ -66,7 +93,6 @@ class PresenceFeedController extends ControllerBase {
       $uid = (int) $r->uid;
       $items[] = [
         'uid'   => $uid,
-        'uuid'  => $r->user_uuid,
         'name'  => $r->realname,
         'door'  => $r->door,
         'first' => (int) $r->first_seen,

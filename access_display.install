@@ -22,3 +22,22 @@ function access_display_schema() {
   ];
   return $schema;
 }
+
+/**
+ * Gate the display and feed to the building IP; bound the feed to 24 hours.
+ */
+function access_display_update_10001() {
+  $config = \Drupal::configFactory()->getEditable('access_display.settings');
+  $messages = [];
+  if ($config->get('allowed_ips') === NULL) {
+    // The building's egress IP, where the recent-entries kiosk lives.
+    $config->set('allowed_ips', ['32.218.105.26']);
+    $messages[] = 'Set allowed_ips to the building IP.';
+  }
+  if ($config->get('feed_window_hours') === NULL) {
+    $config->set('feed_window_hours', 24);
+    $messages[] = 'Set feed_window_hours to 24.';
+  }
+  $config->save();
+  return $messages ? implode(' ', $messages) : 'Access display settings already present.';
+}

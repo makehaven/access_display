@@ -34,6 +34,39 @@ This module is ideal for scenarios like building entrances, event check-ins, or 
     *   **Custom CSS**: (Optional) Add your own CSS to style the kiosk page. The default CSS provides a clean, dark-themed grid layout.
 5.  Save the configuration.
 
+## Access control (who can load the display and feed)
+
+The display page (`/display/access-request/...`) and the presence feed
+(`/access-display/presence/...`) list who recently came through the doors,
+with names, photos, doors and times. They are **not public** (SEC-021). A
+request is allowed when either:
+
+*   the client IP (`Request::getClientIp()`) matches an entry in
+    `access_display.settings:allowed_ips` (IP addresses or CIDR ranges, edited
+    on the settings page, one per line), or
+*   the account has the **View the access display and presence feed from any
+    network** permission (`view access display`, restricted). Grant it to staff
+    roles that need to watch the board remotely.
+
+Everything else gets a 403. An empty allowlist fails closed: only the
+permission grants access. Access results are never cached (they depend on
+the IP) and the routes are `no_cache`.
+
+**Building-IP caveat.** The allowlist holds the building's public egress IP
+(`32.218.105.26` as of 2026-10-01), which is how the kiosk screens get in
+without logging in. That address is the NAT for the *whole* building,
+including guest Wi-Fi, so anyone on site can still load the feed. This is an
+interim control, not a kiosk credential. **Re-verify the IP after any ISP or
+router change**: if it changes, the kiosks go blank (403) until the new
+address is added. The site's exported config
+(`config/access_display.settings.yml`) must carry the list, or a config import
+blanks it.
+
+The code word (below) still applies on top of this when it is set.
+
+The feed only returns entries seen within `feed_window_hours` (default 24)
+and does not include user UUIDs.
+
 ## Usage
 
 The access display page is available at a dynamic URL that you construct based on your needs. The basic structure is:

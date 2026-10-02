@@ -11,7 +11,9 @@ access_display.display_page_full:
   defaults:
     _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
   requirements:
-    _permission: 'access content'
+    _access_display_kiosk: 'TRUE'
+  options:
+    no_cache: TRUE
 
 access_display.display_page_permission:
   path: '/display/access-request/{code_word}/{permission}'
@@ -19,7 +21,9 @@ access_display.display_page_permission:
     _controller: '\Drupal\access_display\Controller\DisplayController::displayPage'
     source: null
   requirements:
-    _permission: 'access content'
+    _access_display_kiosk: 'TRUE'
+  options:
+    no_cache: TRUE
 
 access_display.display_page_code_only:
   path: '/display/access-request/{code_word}'
@@ -28,14 +32,18 @@ access_display.display_page_code_only:
     permission: null
     source: null
   requirements:
-    _permission: 'access content'
+    _access_display_kiosk: 'TRUE'
+  options:
+    no_cache: TRUE
 
 access_display.feed_full:
   path: '/access-display/presence/{permission}/{source}'
   defaults:
     _controller: '\Drupal\access_display\Controller\PresenceFeedController::feed'
   requirements:
-    _permission: 'access content'
+    _access_display_kiosk: 'TRUE'
+  options:
+    no_cache: TRUE
 
 access_display.feed_permission:
   path: '/access-display/presence/{permission}'
@@ -43,7 +51,9 @@ access_display.feed_permission:
     _controller: '\Drupal\access_display\Controller\PresenceFeedController::feed'
     source: null
   requirements:
-    _permission: 'access content'
+    _access_display_kiosk: 'TRUE'
+  options:
+    no_cache: TRUE
 
 access_display.guest_checkin:
   path: '/checkin/guest/{token}'

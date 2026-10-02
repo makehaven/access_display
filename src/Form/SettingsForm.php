@@ -2,9 +2,11 @@
 
 namespace Drupal\access_display\Form;
 
+use Drupal\access_display\Access\KioskAccessCheck;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 
@@ -25,11 +27,13 @@ class SettingsForm extends ConfigFormBase {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
+   * @param \Drupal\Core\Config\TypedConfigManagerInterface $typed_config_manager
+   *   The typed config manager.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager) {
-    parent::__construct($config_factory);
+  public function __construct(ConfigFactoryInterface $config_factory, TypedConfigManagerInterface $typed_config_manager, EntityTypeManagerInterface $entity_type_manager) {
+    parent::__construct($config_factory, $typed_config_manager);
     $this->entityTypeManager = $entity_type_manager;
   }
 
@@ -39,6 +43,7 @@ class SettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
+      $container->get('config.typed'),
       $container->get('entity_type.manager')
     );
   }
@@ -82,6 +87,25 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Code Word'),
       '#description' => $this->t('A secret code word to include in the URL for simple protection against scraping. If left blank, no code word is required.'),
       '#default_value' => $config->get('code_word'),
+    ];
+
+    $allowed_ips = $config->get('allowed_ips');
+    $form['allowed_ips'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Allowed IP addresses'),
+      '#description' => $this->t('One IP address or CIDR range per line (e.g. <code>203.0.113.7</code> or <code>203.0.113.0/24</code>). The display page and presence feed are served only to these addresses, or to accounts with the "View the access display and presence feed from any network" permission. Leave empty to allow only that permission. Use the building\'s public egress IP for the kiosk screens, and re-check it after any ISP or router change, or the kiosks go blank. Your current IP, as this site sees it, is %ip.', ['%ip' => $this->getRequest()->getClientIp() ?? '?']),
+      '#default_value' => is_array($allowed_ips) ? implode("\n", $allowed_ips) : '',
+      '#rows' => 4,
+    ];
+
+    $form['feed_window_hours'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Feed window (hours)'),
+      '#description' => $this->t('Only entries seen within this many hours are returned by the presence feed.'),
+      '#default_value' => $config->get('feed_window_hours') ?: 24,
+      '#min' => 1,
+      '#max' => 168,
+      '#required' => TRUE,
     ];
 
     $form['usage'] = [
@@ -132,11 +156,39 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    parent::validateForm($form, $form_state);
+    foreach ($this->parseAllowedIps((string) $form_state->getValue('allowed_ips')) as $entry) {
+      if (!KioskAccessCheck::isValidEntry($entry)) {
+        $form_state->setErrorByName('allowed_ips', $this->t('%entry is not a valid IP address or CIDR range.', ['%entry' => $entry]));
+      }
+    }
+  }
+
+  /**
+   * Splits the allowed IPs textarea into trimmed, non-empty entries.
+   *
+   * @param string $value
+   *   The raw textarea value.
+   *
+   * @return string[]
+   *   The entries.
+   */
+  protected function parseAllowedIps(string $value): array {
+    $lines = preg_split('/\R/', $value) ?: [];
+    return array_values(array_unique(array_filter(array_map('trim', $lines), 'strlen')));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('access_display.settings')
       ->set('image_style', $form_state->getValue('image_style'))
       ->set('code_word', $form_state->getValue('code_word'))
       ->set('custom_css', $form_state->getValue('custom_css'))
+      ->set('allowed_ips', $this->parseAllowedIps((string) $form_state->getValue('allowed_ips')))
+      ->set('feed_window_hours', (int) $form_state->getValue('feed_window_hours'))
       ->save();
     parent::submitForm($form, $form_state);
   }

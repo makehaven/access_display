@@ -6,3 +6,9 @@ services:
   access_display.guest_token_manager:
     class: Drupal\access_display\Service\GuestTokenManager
     arguments: ['@entity_type.manager']
+
+  access_display.kiosk_access:
+    class: Drupal\access_display\Access\KioskAccessCheck
+    arguments: ['@config.factory']
+    tags:
+      - { name: access_check, applies_to: _access_display_kiosk }
